@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form>
+        <input type="text" name="channel" placeholder="Twitch channel"/>
+        <input type="text" name="botName" placeholder="Bot name"/>
+        <input type="password" name="twitchOauth" placeholder="Bot Oauth"/>
+        <input type="submit" value="Connect"/>
+    </form>
+    <p>You can generate your bot's Oauth token at : <a href="https://twitchapps.com/tmi/">Twitch Chat OAuth Password Generator</a></p>
+    <script>
+        document.querySelector('form').addEventListener('submit',e=>{
+            e.preventDefault();
+            localStorage.setItem('twitchChannel',document.querySelector('input[name=channel]').value);
+            localStorage.setItem('botName',document.querySelector('input[name=botName]').value);
+            localStorage.setItem('twitchOauth', document.querySelector('input[name=twitchOauth]').value);
+            window.location.replace("./");
+        })        
+    </script>
+</body>
+</html>
