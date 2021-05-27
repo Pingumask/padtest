@@ -83,13 +83,13 @@ function getButtons(controller) {
 		if (!button.pressed) return;
 		switch (BUTTONS[index]) {
 			case 'A':
-				return playerFire(controller.axes[0]*2.4, 30);
+				return playerFire(controller.axes[0]*Number(PLAYER.dataset.speed)*.75, 30);
 			case 'B':
-				return playerFire(30, controller.axes[1]*2.4);
+				return playerFire(30, controller.axes[1]*Number(PLAYER.dataset.speed)*.75);
 			case 'X':
-				return playerFire(-30, controller.axes[1]*2.4);
+				return playerFire(-30, controller.axes[1]*Number(PLAYER.dataset.speed)*.75);
 			case 'Y':
-				return playerFire(controller.axes[0]*2.4, -30);
+				return playerFire(controller.axes[0]*Number(PLAYER.dataset.speed)*.75, -30);
 			case 'start':
 				return console.log('pause');
 			default:
@@ -178,6 +178,7 @@ function checkBulletsenemiesCollisions(){
 }
 
 function checkRoundCollision(firstObject, secondObject){
+	if (!checkSquareCollision(firstObject,secondObject)) return false;
 	let hitCircle1 = {
 		radius: firstObject.offsetWidth/2, 
 		x: Number(firstObject.dataset.posx), 
@@ -193,7 +194,17 @@ function checkRoundCollision(firstObject, secondObject){
 	let dy = hitCircle1.y - hitCircle2.y;
 	let distance = Math.sqrt(dx * dx + dy * dy);
 	if (distance < hitCircle1.radius + hitCircle2.radius) {
+		console.log(`Round Collision`)
 		return true;
 	}
 	return false;
+}
+
+function checkSquareCollision(firstObject, secondObject){
+	if ( firstObject.offsetLeft + firstObject.offsetWidth < secondObject.offsetLeft) return false; // 1 trop à gauche
+	if ( secondObject.offsetLeft + secondObject.offsetWidth < firstObject.offsetLeft) return false; // 1 trop à droite
+	if ( firstObject.offsetTop + firstObject.offsetHeight < secondObject.offsetTop) return false; // 1 trop haut
+	if ( secondObject.offsetTop + secondObject.offsetHeight < firstObject.offsetTop) return false;// 1 trop bas
+	console.log(`Square collision`)
+	return true;
 }
