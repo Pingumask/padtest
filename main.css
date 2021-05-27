@@ -36,14 +36,26 @@ main{
     background-color:#fff0;
 }
 
-main div:nth-child(3n){
-    background:#bbb;
+main div:nth-child(7n){
+    background:#707070;
 }
-main div:nth-child(3n+1){
-    background:#aaa;
+main div:nth-child(7n+1){
+    background:#777777;
 }
-main div:nth-child(3n+2){
-    background:#999;
+main div:nth-child(7n+2){
+    background:#606060;
+}
+main div:nth-child(7n+3){
+    background:#808080;
+}
+main div:nth-child(7n+4){
+    background:#727272;
+}
+main div:nth-child(7n+5){
+    background:#656565;
+}
+main div:nth-child(7n+6){
+    background:#757575;
 }
 
 img{
