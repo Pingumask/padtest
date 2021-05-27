@@ -41,6 +41,9 @@ function update() {
 	updatePlayerPosition(controller);
 	getButtons(controller);
 	moveBullets();
+	moveenemies();
+	checkPlayerenemiesCollisions();
+	checkBulletsenemiesCollisions();
 }
 
 function updatePlayerPosition(controller) {
@@ -67,12 +70,12 @@ function updatePlayerPosition(controller) {
 			Number(PLAYER.dataset.posy) +
 			Number(controller.axes[1]) * Number(PLAYER.dataset.speed);
 	}
-	if (PLAYER.dataset.posx < 0) PLAYER.dataset.posx = 0;
-	if (PLAYER.dataset.posy < 0) PLAYER.dataset.posy = 0;
-	if (PLAYER.dataset.posx > 1500) PLAYER.dataset.posx = 1500;
-	if (PLAYER.dataset.posy > 800) PLAYER.dataset.posy = 800;
-	PLAYER.style.left = `${PLAYER.dataset.posx}px`;
-	PLAYER.style.top = `${PLAYER.dataset.posy}px`;
+	if (PLAYER.dataset.posx < PLAYER.offsetWidth/2) PLAYER.dataset.posx = PLAYER.offsetWidth/2;
+	if (PLAYER.dataset.posy < PLAYER.offsetHeight/2) PLAYER.dataset.posy = PLAYER.offsetHeight/2;
+	if (PLAYER.dataset.posx > MAIN.offsetWidth - PLAYER.offsetWidth/2) PLAYER.dataset.posx = MAIN.offsetWidth - PLAYER.offsetWidth/2;
+	if (PLAYER.dataset.posy > MAIN.offsetHeight - PLAYER.offsetHeight/2) PLAYER.dataset.posy = MAIN.offsetHeight - PLAYER.offsetHeight/2;
+	PLAYER.style.left = `${PLAYER.dataset.posx - PLAYER.offsetWidth/2}px`;
+	PLAYER.style.top = `${PLAYER.dataset.posy - PLAYER.offsetHeight/2}px`;
 }
 
 function getButtons(controller) {
@@ -80,13 +83,13 @@ function getButtons(controller) {
 		if (!button.pressed) return;
 		switch (BUTTONS[index]) {
 			case 'A':
-				return playerFire(0, 30);
+				return playerFire(controller.axes[0]*2.4, 30);
 			case 'B':
-				return playerFire(30, 0);
+				return playerFire(30, controller.axes[1]*2.4);
 			case 'X':
-				return playerFire(-30, 0);
+				return playerFire(-30, controller.axes[1]*2.4);
 			case 'Y':
-				return playerFire(0, -30);
+				return playerFire(controller.axes[0]*2.4, -30);
 			case 'start':
 				return console.log('pause');
 			default:
@@ -105,6 +108,7 @@ function playerFire(speedx, speedy) {
 	newBullet.dataset.speedx = speedx;
 	newBullet.dataset.speedy = speedy;
 	newBullet.className = 'bullet';
+	newBullet.dataset.damage=25;
 	MAIN.appendChild(newBullet);
 }
 
@@ -115,15 +119,81 @@ function moveBullets() {
 			Number(bullet.dataset.posx) + Number(bullet.dataset.speedx);
 		bullet.dataset.posy =
 			Number(bullet.dataset.posy) + Number(bullet.dataset.speedy);
-		bullet.style.left = bullet.dataset.posx + 'px';
-		bullet.style.top = bullet.dataset.posy + 'px';
+		bullet.style.left = `${Number(bullet.dataset.posx)-Number(bullet.offsetWidth)/2 }px`;
+		bullet.style.top = `${Number(bullet.dataset.posy)-Number(bullet.offsetHeight)/2 }px`;
 		if (
-			bullet.dataset.posx > 1600 - bullet.offsetWidth||
+			bullet.dataset.posx > MAIN.offsetWidth||
 			bullet.dataset.posx < 0 ||
-			bullet.dataset.posy > 900 - bullet.offsetHeight||
+			bullet.dataset.posy > MAIN.offsetHeight||
 			bullet.dataset.posy < 0
 		) {
 			bullet.remove();
 		}
 	});
+}
+
+function moveenemies() {
+	let enemies = document.querySelectorAll('.enemy');
+	enemies.forEach(enemy => {
+		enemy.dataset.posx =
+			Number(enemy.dataset.posx) + Number(enemy.dataset.speedx);
+		enemy.dataset.posy =
+			Number(enemy.dataset.posy) + Number(enemy.dataset.speedy);
+		enemy.style.left = enemy.dataset.posx + 'px';
+		enemy.style.top = enemy.dataset.posy + 'px';
+		if (
+			enemy.dataset.posx > 1600 - enemy.offsetWidth||
+			enemy.dataset.posx < 0
+		) enemy.dataset.speedx*=-1;
+		
+		if(enemy.dataset.posy > 900 - enemy.offsetHeight||
+			enemy.dataset.posy < 0
+		) enemy.dataset.speedy*=-1;
+		
+	});
+}
+
+function checkPlayerenemiesCollisions(){	
+	enemies=document.querySelectorAll('.enemy');
+	enemies.forEach(enemy=>{
+		checkRoundCollision(PLAYER, enemy);
+	})
+}
+
+function checkBulletsenemiesCollisions(){	
+	let bullets=document.querySelectorAll('.bullet');
+	let enemies=document.querySelectorAll('.enemy');
+	bullets.forEach(bullet=>{
+		enemies.forEach(enemy=>{
+			if(checkRoundCollision(bullet, enemy)){
+				enemy.dataset.life-=bullet.dataset.damage
+				bullet.remove();
+				if (Number(enemy.dataset.life)<=0){
+					enemy.remove();
+				}
+			}
+		})
+	})
+	
+}
+
+function checkRoundCollision(firstObject, secondObject){
+	let hitCircle1 = {
+		radius: firstObject.offsetWidth/2, 
+		x: Number(firstObject.dataset.posx), 
+		y: Number(firstObject.dataset.posy)
+	};
+	let hitCircle2 = {
+		radius: secondObject.offsetWidth/2, 
+		x: Number(secondObject.dataset.posx), 
+		y: Number(secondObject.dataset.posy)
+	};
+
+	let dx = hitCircle1.x - hitCircle2.x;
+	let dy = hitCircle1.y - hitCircle2.y;
+	let distance = Math.sqrt(dx * dx + dy * dy);
+	if (distance < hitCircle1.radius + hitCircle2.radius) {
+		return true;
+	}
+	return false;
 }

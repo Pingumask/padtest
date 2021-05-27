@@ -7,6 +7,7 @@
     box-sizing:border-box;
     margin:0;
     padding:0;
+    transition:2s;
 }
 
 html, body{
@@ -32,21 +33,23 @@ main{
     grid-template-columns: repeat(16, 1fr);
     grid-template-rows: repeat(9, 1fr);
     position:relative;
+    background-color:#fff0;
 }
 
 main div:nth-child(3n){
-    background:#bbbb;
+    background:#bbb;
 }
 main div:nth-child(3n+1){
-    background:#cccc;
+    background:#aaa;
 }
 main div:nth-child(3n+2){
-    background:#dddd;
+    background:#999;
 }
 
 img{
     position:absolute;
     transition:33ms;
+    z-index:2;
 }
 
 #debug{
@@ -73,4 +76,17 @@ img{
 
 .turnedLeft{
     transform:scaleX(-1);
+}
+
+.snow::after{
+    display:block;
+    width:100%;
+    height:100%;
+    background:url('./snow.gif');
+    background-color:#fff9;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:2;
+    content: " ";
 }
