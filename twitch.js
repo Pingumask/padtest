@@ -14,13 +14,12 @@ twitchClient.on('connected', onConnectedHandler);
 twitchClient.connect()
 .catch(()=>{window.location.replace("./connect.html");})  
 
-function onMessageHandler(target, context, msg, self) {
-    console.log(`%c ${context['display-name']} : ${msg}`,`color:${context.color}`);
+function onMessageHandler(channel, sender, msg, self) {
+    console.log(`%c ${sender['display-name']} : ${msg}`,`color:${sender.color}`);
     if (self) { return; }     
     if (!msg.startsWith('!')) { return; } 
     const args = msg.split(" ");
     const command = args.shift().substring(1);
-    //console.log(context);
     switch(command){
         case "snow":
             document.querySelector('main').classList.toggle('snow');
@@ -35,13 +34,14 @@ function onMessageHandler(target, context, msg, self) {
             newEnemy.className = 'enemy';
             newEnemy.dataset.damage=25;
             newEnemy.dataset.life=100;
+            newEnemy.dataset.viewer=sender['display-name'];
             let size=Math.floor(Math.random()*40)+20
             newEnemy.dataset.size=size;
             newEnemy.width=size;
             MAIN.appendChild(newEnemy);
             break;
         case "dice":
-            twitchClient.say(target, `Tu as fait un ${Math.floor(Math.random()*6)+1}`)
+            twitchClient.say(channel, `Tu as fait un ${Math.floor(Math.random()*6)+1}`)
     }    
 }
 
