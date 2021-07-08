@@ -102,3 +102,7 @@ img{
     z-index:2;
     content: " ";
 }
+
+p{
+    padding:20px;
+}
