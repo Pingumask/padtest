@@ -27,6 +27,8 @@ const BUTTONS = [
 	'Right',
 ];
 
+let bullets = [];
+
 function update() {
 	DEBUG.innerHTML = `
     Left : ${PLAYER.offsetLeft}<br>
@@ -109,12 +111,11 @@ function playerFire(speedx, speedy) {
 	newBullet.dataset.speedy = speedy;
 	newBullet.className = 'bullet';
 	newBullet.dataset.damage=25;
-	MAIN.appendChild(newBullet);
+	bullets.push(MAIN.appendChild(newBullet));
 }
 
-function moveBullets() {
-	let bullets = document.querySelectorAll('.bullet');
-	bullets.forEach(bullet => {
+function moveBullets() {	
+	bullets.forEach((bullet, index) => {
 		bullet.dataset.posx =
 			Number(bullet.dataset.posx) + Number(bullet.dataset.speedx);
 		bullet.dataset.posy =
@@ -127,6 +128,7 @@ function moveBullets() {
 			bullet.dataset.posy > MAIN.offsetHeight||
 			bullet.dataset.posy < 0
 		) {
+			bullets.splice(index,1);
 			bullet.remove();
 		}
 	});
@@ -161,12 +163,12 @@ function checkPlayerenemiesCollisions(){
 }
 
 function checkBulletsenemiesCollisions(){	
-	let bullets=document.querySelectorAll('.bullet');
 	let enemies=document.querySelectorAll('.enemy');
-	bullets.forEach(bullet=>{
+	bullets.forEach((bullet, index)=>{
 		enemies.forEach(enemy=>{
 			if(checkRoundCollision(bullet, enemy)){
 				enemy.dataset.life-=bullet.dataset.damage
+				bullets.splice(index,1);
 				bullet.remove();
 				if (Number(enemy.dataset.life)<=0){
 					enemy.remove();
@@ -194,7 +196,7 @@ function checkRoundCollision(firstObject, secondObject){
 	let dy = hitCircle1.y - hitCircle2.y;
 	let distance = Math.sqrt(dx * dx + dy * dy);
 	if (distance < hitCircle1.radius + hitCircle2.radius) {
-		console.log(`Round Collision`)
+		//console.log(`Round Collision`)
 		return true;
 	}
 	return false;
@@ -205,6 +207,6 @@ function checkSquareCollision(firstObject, secondObject){
 	if ( secondObject.offsetLeft + secondObject.offsetWidth < firstObject.offsetLeft) return false; // 1 trop à droite
 	if ( firstObject.offsetTop + firstObject.offsetHeight < secondObject.offsetTop) return false; // 1 trop haut
 	if ( secondObject.offsetTop + secondObject.offsetHeight < firstObject.offsetTop) return false;// 1 trop bas
-	console.log(`Square collision`)
+	//console.log(`Square collision`)
 	return true;
 }
