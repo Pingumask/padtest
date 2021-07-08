@@ -60,7 +60,7 @@ main div:nth-child(7n+6){
 
 img{
     position:absolute;
-    transition:33ms;
+    transition:33ms linear;
     z-index:2;
 }
 
