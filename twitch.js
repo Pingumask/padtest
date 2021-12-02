@@ -1,3 +1,5 @@
+import { spawnEnemy } from "./game.js";
+
 const twitchCredentials = {
     identity: {
       username: localStorage.getItem('botName'),
@@ -6,7 +8,7 @@ const twitchCredentials = {
     channels: [localStorage.getItem('twitchChannel')]
 };
 
-const twitchClient = new tmi.client(twitchCredentials);
+const twitchClient = new tmi.Client(twitchCredentials);
 
 twitchClient.on('message', onMessageHandler);
 twitchClient.on('connected', onConnectedHandler);
@@ -25,20 +27,7 @@ function onMessageHandler(channel, sender, msg, self) {
             document.querySelector('main').classList.toggle('snow');
             break;
         case "spawn":
-            let newEnemy = document.createElement('img');
-            newEnemy.src = 'enemy.svg';
-            newEnemy.dataset.posx = Math.floor(Math.random()*1400)+100;
-            newEnemy.dataset.posy = Math.floor(Math.random()*600)+100;
-            newEnemy.dataset.speedx = Math.floor(Math.random()*40)-20;
-            newEnemy.dataset.speedy = Math.floor(Math.random()*40)-20;
-            newEnemy.className = 'enemy';
-            newEnemy.dataset.damage=25;
-            newEnemy.dataset.life=100;
-            newEnemy.dataset.viewer=sender['display-name'];
-            let size=Math.floor(Math.random()*40)+20
-            newEnemy.dataset.size=size;
-            newEnemy.width=size;
-            MAIN.appendChild(newEnemy);
+            spawnEnemy(channel, sender, msg, self);            
             break;
         case "dice":
             twitchClient.say(channel, `Tu as fait un ${Math.floor(Math.random()*6)+1}`)

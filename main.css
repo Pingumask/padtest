@@ -7,7 +7,6 @@
     box-sizing:border-box;
     margin:0;
     padding:0;
-    transition:2s;
 }
 
 html, body{
@@ -26,8 +25,8 @@ body{
 
 main{
     overflow:hidden;
-    width:1600px;
-    height:900px;
+    width:clamp(70vw, calc(100vh * 16/9 - 200px), 90vw);
+    aspect-ratio: 16/9;
     border:5px solid black;
     display:grid;
     grid-template-columns: repeat(16, 1fr);
@@ -58,10 +57,11 @@ main div:nth-child(7n+6){
     background:#757575;
 }
 
-img{
+img, picture{
     position:absolute;
     transition:33ms linear;
     z-index:2;
+    content: attr(data-viewer);
 }
 
 #debug{
@@ -80,6 +80,19 @@ img{
     position:absolute;
     left:50%;
     top:50%;
+    transition: transform 0.5s;
+}
+
+.enemy{
+    transition: transform 0.5s;
+    
+    position:absolute;
+}
+
+.enemy::after{
+    display:block;
+    position:absolute;
+    content:url(http://nope.image.test);
 }
 
 .bullet{

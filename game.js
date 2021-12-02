@@ -1,12 +1,15 @@
+requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
 const CONFIG = {
 	padDeadZone: 0.2,
-	fps: 30,
 };
 
-setInterval(update, 1000 / CONFIG.fps);
 const PLAYER = document.getElementById('player');
 const DEBUG = document.getElementById('debug');
 const MAIN = document.querySelector('main');
+let bullets = [];
+let enemies = document.querySelectorAll('ennemy');
+let lastUpdates=null;
 
 const BUTTONS = [
 	'A',
@@ -27,28 +30,39 @@ const BUTTONS = [
 	'Right',
 ];
 
-let bullets = [];
-
-function update() {
+function update(time) {
+	let fps = 60;
+	if (lastUpdates === null) return gameInit(time);
+	let deltaTime = time - lastUpdates[0];
+	lastUpdates.unshift(time);
+	if (lastUpdates.length > 60){
+		let old = lastUpdates.pop();
+		fps = 60000 / (time - old);
+	} 
 	DEBUG.innerHTML = `
     Left : ${PLAYER.offsetLeft}<br>
-    Top : ${PLAYER.offsetTop}<br>`;
+    Top : ${PLAYER.offsetTop}<br>
+	Fps : ${parseFloat(fps).toFixed(2)}<br>
+	Time : ${Math.round(time/1000)}<br>`;
 	const PADS = navigator.getGamepads();
-	if (!PADS[0])
-		return (DEBUG.innerHTML += `
-    CONTROLLER : <br>
-    Disconnected
-    `);
+	if (!PADS[0]){
+		DEBUG.innerHTML += `
+		CONTROLLER : <br>
+		Disconnected`;
+		return requestAnimationFrame(update);
+	}
+		
 	let controller = PADS[0];
-	updatePlayerPosition(controller);
+	updatePlayerPosition(controller, deltaTime);
 	getButtons(controller);
-	moveBullets();
-	moveenemies();
-	checkPlayerenemiesCollisions();
-	checkBulletsenemiesCollisions();
+	moveBullets(deltaTime);
+	moveEnemies(deltaTime);
+	checkPlayerEnemiesCollisions();
+	checkBulletsEnemiesCollisions();
+	requestAnimationFrame(update);
 }
 
-function updatePlayerPosition(controller) {
+function updatePlayerPosition(controller, deltaTime) {
 	DEBUG.innerHTML += `
     CONTROLLER : <br>
     X : ${controller.axes[0]}<br>
@@ -60,7 +74,7 @@ function updatePlayerPosition(controller) {
 	) {
 		PLAYER.dataset.posx =
 			Number(PLAYER.dataset.posx) +
-			Number(controller.axes[0]) * Number(PLAYER.dataset.speed);
+			Number(controller.axes[0]) * Number(PLAYER.dataset.speed * deltaTime);
 		if (controller.axes[0]<0) PLAYER.classList.add("turnedLeft");
 		else PLAYER.classList.remove("turnedLeft");
 	}
@@ -70,7 +84,7 @@ function updatePlayerPosition(controller) {
 	) {
 		PLAYER.dataset.posy =
 			Number(PLAYER.dataset.posy) +
-			Number(controller.axes[1]) * Number(PLAYER.dataset.speed);
+			Number(controller.axes[1]) * Number(PLAYER.dataset.speed * deltaTime);
 	}
 	if (PLAYER.dataset.posx < PLAYER.offsetWidth/2) PLAYER.dataset.posx = PLAYER.offsetWidth/2;
 	if (PLAYER.dataset.posy < PLAYER.offsetHeight/2) PLAYER.dataset.posy = PLAYER.offsetHeight/2;
@@ -85,13 +99,13 @@ function getButtons(controller) {
 		if (!button.pressed) return;
 		switch (BUTTONS[index]) {
 			case 'A':
-				return playerFire(controller.axes[0]*Number(PLAYER.dataset.speed)*.75, 30);
+				return playerFire(controller.axes[0]*Number(PLAYER.dataset.speed)*PLAYER.dataset.shotfriction, PLAYER.dataset.shotspeed);
 			case 'B':
-				return playerFire(30, controller.axes[1]*Number(PLAYER.dataset.speed)*.75);
+				return playerFire(PLAYER.dataset.shotspeed, controller.axes[1]*Number(PLAYER.dataset.speed)*PLAYER.dataset.shotfriction);
 			case 'X':
-				return playerFire(-30, controller.axes[1]*Number(PLAYER.dataset.speed)*.75);
+				return playerFire(- PLAYER.dataset.shotspeed, controller.axes[1]*Number(PLAYER.dataset.speed)*PLAYER.dataset.shotfriction);
 			case 'Y':
-				return playerFire(controller.axes[0]*Number(PLAYER.dataset.speed)*.75, -30);
+				return playerFire(controller.axes[0]*Number(PLAYER.dataset.speed)*PLAYER.dataset.shotfriction, - PLAYER.dataset.shotspeed);
 			case 'start':
 				return console.log('pause');
 			default:
@@ -114,12 +128,12 @@ function playerFire(speedx, speedy) {
 	bullets.push(MAIN.appendChild(newBullet));
 }
 
-function moveBullets() {	
+function moveBullets(deltaTime) {	
 	bullets.forEach((bullet, index) => {
 		bullet.dataset.posx =
-			Number(bullet.dataset.posx) + Number(bullet.dataset.speedx);
+			(Number(bullet.dataset.posx) + Number(bullet.dataset.speedx) * deltaTime);
 		bullet.dataset.posy =
-			Number(bullet.dataset.posy) + Number(bullet.dataset.speedy);
+			(Number(bullet.dataset.posy) + Number(bullet.dataset.speedy) * deltaTime);
 		bullet.style.left = `${Number(bullet.dataset.posx)-Number(bullet.offsetWidth)/2 }px`;
 		bullet.style.top = `${Number(bullet.dataset.posy)-Number(bullet.offsetHeight)/2 }px`;
 		if (
@@ -134,35 +148,36 @@ function moveBullets() {
 	});
 }
 
-function moveenemies() {
-	let enemies = document.querySelectorAll('.enemy');
-	enemies.forEach(enemy => {
+function moveEnemies(deltaTime) {
+	enemies.forEach((enemy, index) => {
 		enemy.dataset.posx =
-			Number(enemy.dataset.posx) + Number(enemy.dataset.speedx);
+			(Number(enemy.dataset.posx) + Number(enemy.dataset.speedx) * deltaTime);
 		enemy.dataset.posy =
-			Number(enemy.dataset.posy) + Number(enemy.dataset.speedy);
+			(Number(enemy.dataset.posy) + Number(enemy.dataset.speedy) * deltaTime);
 		enemy.style.left = enemy.dataset.posx + 'px';
 		enemy.style.top = enemy.dataset.posy + 'px';
-		if (
-			enemy.dataset.posx > 1600 - enemy.offsetWidth||
-			enemy.dataset.posx < 0
-		) enemy.dataset.speedx*=-1;
+
+		if ((enemy.dataset.posx > MAIN.offsetWidth - enemy.offsetWidth && enemy.dataset.speedx>0)|| enemy.dataset.posx < 0 && enemy.dataset.speedx<0){
+			console.log("boink");
+			enemy.dataset.speedx*=-1;
+			enemy.classList.toggle("turnedLeft");
+		} 
 		
-		if(enemy.dataset.posy > 900 - enemy.offsetHeight||
-			enemy.dataset.posy < 0
-		) enemy.dataset.speedy*=-1;
-		
+		if((enemy.dataset.posy > MAIN.offsetHeight - enemy.offsetHeight && enemy.dataset.speedy>0)|| enemy.dataset.posy < 0 && enemy.dataset.speedy<0){
+			console.log("boing");
+			enemy.dataset.speedy*=-1;
+		}		
 	});
 }
 
-function checkPlayerenemiesCollisions(){	
+function checkPlayerEnemiesCollisions(){	
 	enemies=document.querySelectorAll('.enemy');
 	enemies.forEach(enemy=>{
 		checkRoundCollision(PLAYER, enemy);
 	})
 }
 
-function checkBulletsenemiesCollisions(){	
+function checkBulletsEnemiesCollisions(){	
 	let enemies=document.querySelectorAll('.enemy');
 	bullets.forEach((bullet, index)=>{
 		enemies.forEach(enemy=>{
@@ -210,3 +225,30 @@ function checkSquareCollision(firstObject, secondObject){
 	//console.log(`Square collision`)
 	return true;
 }
+
+function gameInit(time){
+	console.log("init");
+	lastUpdates = [time];
+	requestAnimationFrame(update);
+}
+
+export function spawnEnemy (channel, sender, msg, self){
+	let newEnemy = document.createElement('img');
+	newEnemy.src = 'enemy.svg';
+	newEnemy.dataset.posx = Math.floor(Math.random()*(MAIN.offsetWidth-200))+100;
+	newEnemy.dataset.posy = Math.floor(Math.random()*(MAIN.offsetHeight-200))+100;
+	newEnemy.dataset.speedx = Math.random()-0.5;
+	newEnemy.dataset.speedy = Math.random()-0.5;
+	newEnemy.className = 'enemy';
+	if (newEnemy.dataset.speedx<0) newEnemy.classList.add("turnedLeft");
+	newEnemy.dataset.damage=25;
+	newEnemy.dataset.life=100;
+	newEnemy.dataset.viewer=sender['display-name'];
+	let size=Math.floor(Math.random()*40)+20
+	newEnemy.dataset.size=size;
+	newEnemy.width=size;
+	MAIN.appendChild(newEnemy);
+}
+
+
+addEventListener("load",()=>requestAnimationFrame(update));

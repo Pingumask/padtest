@@ -1,1 +1,1 @@
-const tmi = require('tmi.js');
+let tmi = require('tmi.js');
