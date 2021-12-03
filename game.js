@@ -195,7 +195,6 @@ function checkBulletsEnemiesCollisions(){
 }
 
 function checkRoundCollision(firstObject, secondObject){
-	if (!checkSquareCollision(firstObject,secondObject)) return false;
 	let hitCircle1 = {
 		radius: firstObject.offsetWidth/2, 
 		x: Number(firstObject.dataset.posx), 
@@ -210,20 +209,17 @@ function checkRoundCollision(firstObject, secondObject){
 	let dx = hitCircle1.x - hitCircle2.x;
 	let dy = hitCircle1.y - hitCircle2.y;
 	let distance = Math.sqrt(dx * dx + dy * dy);
-	if (distance < hitCircle1.radius + hitCircle2.radius) {
-		//console.log(`Round Collision`)
-		return true;
-	}
-	return false;
+	return (distance < hitCircle1.radius + hitCircle2.radius);
 }
 
 function checkSquareCollision(firstObject, secondObject){
-	if ( firstObject.offsetLeft + firstObject.offsetWidth < secondObject.offsetLeft) return false; // 1 trop à gauche
-	if ( secondObject.offsetLeft + secondObject.offsetWidth < firstObject.offsetLeft) return false; // 1 trop à droite
-	if ( firstObject.offsetTop + firstObject.offsetHeight < secondObject.offsetTop) return false; // 1 trop haut
-	if ( secondObject.offsetTop + secondObject.offsetHeight < firstObject.offsetTop) return false;// 1 trop bas
-	//console.log(`Square collision`)
-	return true;
+	return ( 
+		!(firstObject.offsetLeft + firstObject.offsetWidth < secondObject.offsetLeft // 1 trop à gauche
+		|| secondObject.offsetLeft + secondObject.offsetWidth < firstObject.offsetLeft // 1 trop à droite
+	    || firstObject.offsetTop + firstObject.offsetHeight < secondObject.offsetTop // 1 trop haut
+		|| secondObject.offsetTop + secondObject.offsetHeight < firstObject.offsetTop // 1 trop bas
+		)
+	);
 }
 
 function gameInit(time){
